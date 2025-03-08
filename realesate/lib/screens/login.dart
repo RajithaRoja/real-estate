@@ -269,6 +269,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   AuthBloc() : super(AuthInitial()) {
+    _auth.authStateChanges().listen((User? user) {
+      if (user != null) {
+        emit(AuthSuccess(user: user));
+      }
+    });
+
     on<SignInWithEmailPasswordEvent>(_onSignInWithEmailPassword);
     on<SignInWithGoogleEvent>(_onSignInWithGoogle);
     on<SignOutEvent>(_onSignOut);
