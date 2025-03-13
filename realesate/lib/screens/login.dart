@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -52,11 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // App Logo
-                Image.asset(
-                  'assets/images/app_logo.png',
-                  width: 80,
-                  height: 80,
-                ),
+                SvgPicture.asset('logo.svg'),
                 const SizedBox(height: 32),
 
                 // Welcome Text
@@ -96,10 +93,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset(
-                        'assets/images/google_logo.png',
-                        height: 24,
-                      ),
+                      SvgPicture.asset('google.svg'),
+
                       const SizedBox(width: 12),
                       const Text('Continue with Google'),
                     ],
