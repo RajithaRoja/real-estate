@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:realesate/agent_user_list/agent_user_controller.dart';
 import 'package:realesate/agent_user_list/agent_user_model.dart';
 import 'package:realesate/constant/app.colors.dart';
@@ -161,6 +162,7 @@ class PropertyCard extends StatelessWidget {
   const PropertyCard({super.key, required this.property});
 
   @override
+  
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -283,7 +285,7 @@ class PropertyDetailsSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "\$${property.price.toStringAsFixed(0)}",
+                "\$${NumberFormat("#,###").format(property.price)}",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -313,6 +315,8 @@ class PropertyDetailsSection extends StatelessWidget {
     );
   }
 }
+
+
 
 /// This Dart function displays a full-size image in a dialog with a close button.
 ///
@@ -389,7 +393,7 @@ class PropertyGallery extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey[800]),
+                    color: AppColors.darkGrey),
               ),
             ],
           ),
@@ -470,7 +474,7 @@ class PropertyStatusSection extends StatelessWidget {
                     ? AppStrings.underReviewText
                     : property.status == AppStrings.active
                         ? AppStrings.activeProperty
-                        : AppStrings.inActive,
+                        : AppStrings.inActiveProperty,
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

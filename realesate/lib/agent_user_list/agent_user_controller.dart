@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:realesate/agent_user_list/agent_user_model.dart';
 
 class AgentUserPropertyController extends GetxController with GetTickerProviderStateMixin {
