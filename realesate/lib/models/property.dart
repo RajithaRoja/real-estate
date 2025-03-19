@@ -16,6 +16,8 @@ class Property {
   final List<String> amenities;
   final double? latitude;
   final double? longitude;
+  final String status;
+  final DateTime? createdAt;
 
   Property({
     required this.id,
@@ -35,7 +37,10 @@ class Property {
     required this.amenities,
     this.latitude,
     this.longitude,
+      required this.status,
+      this.createdAt
   });
+
 
   Property copyWith({
     String? title,
@@ -54,6 +59,8 @@ class Property {
     List<String>? amenities,
     double? latitude,
     double? longitude,
+      String? status,
+      DateTime? createdAt
   }) {
     return Property(
       id: id,
@@ -73,6 +80,8 @@ class Property {
       amenities: amenities ?? this.amenities,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+        status: status ?? this.status,
+        createdAt: createdAt ?? this.createdAt
     );
   }
 } 
