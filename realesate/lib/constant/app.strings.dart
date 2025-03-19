@@ -10,4 +10,9 @@ class AppStrings {
   static String underReviewText = "Waiting for admin review";
   static String activeProperty = "The property is now active";
   static String inActiveProperty = "The property is inactive";
+  static String propertyApproval = "Property Approval List";
+    static String pending = "Pending";
+    static String approved = "Approved";
+    static String rejected = "Rejected";
+
 }

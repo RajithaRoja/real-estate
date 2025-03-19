@@ -1,12 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:realesate/admin_property_approve/admin_property_list.dart';
+import 'package:realesate/agent_user_list/agent_user_list.dart';
 
 import 'firebase_options.dart';
 import 'property/property_bloc.dart';
 import 'property/property_event.dart';
 import 'repositories/property_repository.dart';
-import 'screens/add_property_screen.dart';
 import 'screens/login.dart';
 
 Future<void> main() async {
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
         ),
         home: const LoginScreen(),
         routes: {
-          '/home': (context) => const  AddPropertyScreen(),
+          '/home': (context) => AdminPropertyListPage(),
           '/login': (context) => const LoginScreen(),
         },
       ),

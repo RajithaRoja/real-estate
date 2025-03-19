@@ -3,7 +3,6 @@ import '../models/property.dart';
 abstract class PropertyEvent {
   const PropertyEvent();
 
-  @override
   List<Object?> get props => [];
 }
 

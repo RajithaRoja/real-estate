@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // App Logo
-                SvgPicture.asset('logo.svg'),
+                SvgPicture.asset('assets/images/logo.svg'),
                 const SizedBox(height: 32),
 
                 // Welcome Text
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SvgPicture.asset('google.svg'),
+                      SvgPicture.asset('assets/images/google.svg'),
 
                       const SizedBox(width: 12),
                       const Text('Continue with Google'),
@@ -261,11 +261,14 @@ class SignOutEvent extends AuthEvent {}
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+      clientId:
+          "887549009134-qho0qfc6i245ie5qju7ehctqpt0sg45o.apps.googleusercontent.com");
 
   AuthBloc() : super(AuthInitial()) {
     _auth.authStateChanges().listen((User? user) {
       if (user != null) {
+        // ignore: invalid_use_of_visible_for_testing_member
         emit(AuthSuccess(user: user));
       }
     });

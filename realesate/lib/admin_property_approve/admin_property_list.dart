@@ -1,29 +1,33 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:realesate/agent_user_list/agent_user_controller.dart';
-import 'package:realesate/agent_user_list/youtube.dart';
+import 'package:realesate/admin_property_approve/admin_property_list_controller.dart';
 import 'package:realesate/constant/app.colors.dart';
 import 'package:realesate/constant/app.strings.dart';
 import 'package:realesate/models/property.dart';
 import 'package:realesate/screens/add_property_screen.dart';
 
-class AgentPropertyListPage extends StatelessWidget {
-  final AgentUserPropertyController controller =
-      Get.put(AgentUserPropertyController());
+class AdminPropertyListPage extends StatelessWidget {
+  final AdminPropertyController controller = Get.put(AdminPropertyController());
 
-  AgentPropertyListPage({super.key});
+  AdminPropertyListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        extendBodyBehindAppBar:
-            false, // Ensures AppBar background remains solid
-
+        extendBodyBehindAppBar: false,
         appBar: _buildAppBar(context),
         body: Column(
           children: [
+             Divider(
+            // ✅ Divider added below AppBar
+            color: AppColors.appshade200Grey,
+            thickness: 1,
+            height: 1, // Ensures it stays right below the AppBar
+          ),
+          const SizedBox(height: 10,),
             _buildSearchBar(context),
             Divider(
               color: AppColors.appshade200Grey,
@@ -58,9 +62,9 @@ class AgentPropertyListPage extends StatelessWidget {
     return PreferredSize(
       preferredSize: const Size.fromHeight(66),
       child: AppBar(
-        backgroundColor: Colors.white, // Fixed background color
+        backgroundColor: Colors.transparent, // Fixed background color
         surfaceTintColor: Colors.transparent, // Prevents auto tinting
-        elevation: 0,
+        elevation: 0,   
         title: Row(
           mainAxisAlignment:
               MainAxisAlignment.spaceBetween, // Ensures proper spacing
@@ -68,7 +72,7 @@ class AgentPropertyListPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 20), // Moves the title down
               child: Text(
-                AppStrings.myProperty,
+                AppStrings.propertyApproval,
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),
@@ -147,15 +151,15 @@ class AgentPropertyListPage extends StatelessWidget {
                 style: const TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w500))),
         Tab(
-            child: Text(AppStrings.underReview,
+            child: Text(AppStrings.pending,
                 style: const TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w500))),
         Tab(
-            child: Text(AppStrings.active,
+            child: Text(AppStrings.approved,
                 style: const TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w500))),
         Tab(
-            child: Text(AppStrings.inActive,
+            child: Text(AppStrings.rejected,
                 style: const TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w500))),
       ],
@@ -176,23 +180,122 @@ class PropertyCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.appshade200Grey),
+        border: Border.all(color: AppColors.appshade300Grey),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PropertyImageSection(property: property),
           PropertyDetailsSection(property: property),
-          if (property.images.isNotEmpty) PropertyGallery(property: property),
-          // ignore: unnecessary_null_comparison
-          if (property.youtubeLink != null && property.youtubeLink.isNotEmpty)
-            VideoTourSection(youtubeUrl: property.youtubeLink),
-          Divider(color: AppColors.appshade200Grey, thickness: 1),
-          PropertyStatusSection(property: property),
+          PropertySection(property: property),
+          const SizedBox(height: 10), // Space before buttons
+          buildPropertyCard(context, property),
+          const SizedBox(height: 10), // Space after buttons
         ],
       ),
     );
   }
+}
+
+Widget buildPropertyCard(BuildContext context, Property property) {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AdminPropertyController controller =
+      Get.find<AdminPropertyController>();
+
+  void updateStatus(String status, Color color) {
+    _firestore.collection('properties').doc(property.id).update({
+      'status': status,
+    }).then((_) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Property marked as $status",
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: color,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Reload the property list after approval/rejection
+      controller.fetchProperties();
+    }).catchError((error) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Failed to update status"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    });
+  }
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      // Show buttons only if the status is "Under Review"
+      if (property.status == "Under Review") ...[
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: ElevatedButton.icon(
+              onPressed: () =>
+                  updateStatus(AppStrings.active, const Color(0xFF10B981)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              icon:                 SvgPicture.asset('assets/images/approve.svg'),
+              label:
+                  const Text("Approve", style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () =>
+                updateStatus(AppStrings.inActive, const Color(0xFFEF4444)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            icon: SvgPicture.asset('assets/images/reject.svg'),
+            label: const Text("Reject", style: TextStyle(color: Colors.white)),
+          ),
+        ),
+        const SizedBox(width: 10),
+      ],
+
+      // Eye Icon (Always Visible)
+      IconButton(
+        style: IconButton.styleFrom(
+          backgroundColor: AppColors.appshade200Grey,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  AddPropertyScreen(id: property.id, isViewMode: true),
+            ),
+          );
+        },
+        icon: SvgPicture.asset(
+          "assets/images/eye_icon.svg",
+          colorFilter: ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn),
+        ),
+      ),
+    ],
+  );
 }
 
 /// The `PropertyImageSection` class is a Flutter widget that displays an image of a property with a
@@ -205,22 +308,23 @@ class PropertyImageSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-          child: Image.network(
-            property.images.first,
-            height: 200,
-            width: double.infinity,
-            fit: BoxFit.cover,
+        if (property.images.isNotEmpty)
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            child: Image.network(
+              property.images.first,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
         Positioned(
           top: 10,
           right: 10,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: getStatusColor(property.status), // ✅ Dynamic color
+              color: getStatusColor(property.status),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -276,13 +380,6 @@ class PropertyDetailsSection extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      "${property.latitude?.toStringAsFixed(5)}° N, ${property.longitude?.toStringAsFixed(5)}° W",
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.darkGrey,
-                          fontWeight: FontWeight.w400),
-                    ),
                   ],
                 ),
               ),
@@ -302,24 +399,6 @@ class PropertyDetailsSection extends StatelessWidget {
                   color: AppColors.blue,
                 ),
               ),
-              Row(
-                children: [
-                  SvgPicture.asset(
-                    "assets/images/clock.svg",
-                    colorFilter:
-                        ColorFilter.mode(AppColors.darkGrey, BlendMode.srcIn),
-                    height: 16,
-                    width: 16,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    property.createdAt != null
-                        ? DateFormat('yyyy-MM-dd').format(property.createdAt!)
-                        : 'N/A',
-                    style: TextStyle(color: AppColors.darkGrey),
-                  ),
-                ],
-              ),
             ],
           ),
         ],
@@ -328,63 +407,9 @@ class PropertyDetailsSection extends StatelessWidget {
   }
 }
 
-/// This Dart function displays a full-size image in a dialog with a close button.
-///
-/// Args:
-///   context (BuildContext): The `context` parameter in Flutter represents the location of a widget
-/// within the widget tree. It is typically used to access information about the current theme, media
-/// query, navigator, etc. The `BuildContext` class provides methods for finding the nearest widget of a
-/// specified type in the widget tree.
-///   imageUrl (String): The `imageUrl` parameter in the `_showFullImage` function is a string that
-/// represents the URL of the image that you want to display in a dialog box. This URL is used to fetch
-/// the image from the network and display it in the dialog box when the function is called.
-///
-/// Returns:
-///   A Dialog widget is being returned. The Dialog widget contains a Stack widget as its child, which
-/// in turn contains a ClipRRect widget with an Image.network widget inside it. Additionally, there is a
-/// Positioned widget with an IconButton inside it for closing the dialog.
-void _showFullImage(BuildContext context, String imageUrl) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(20),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(imageUrl, fit: BoxFit.contain),
-            ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.2,
-            right: MediaQuery.of(context).size.width * 0.08,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 24),
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-/// The `PropertyGallery` class displays a gallery of images for a property with a count of photos and a
-/// preview of the first three images.
-class PropertyGallery extends StatelessWidget {
+class PropertySection extends StatelessWidget {
   final Property property;
-
-  const PropertyGallery({super.key, required this.property});
+  const PropertySection({super.key, required this.property});
 
   @override
   Widget build(BuildContext context) {
@@ -394,78 +419,75 @@ class PropertyGallery extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SvgPicture.asset("assets/images/gallery.svg"),
-              const SizedBox(width: 5),
-              Text(
-                "${property.images.length} photos",
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.darkGrey),
+              // Group 1: Beds
+              Row(
+                children: [
+                  SvgPicture.asset("assets/images/bed.svg"),
+                  const SizedBox(width: 5),
+                  Text(
+                    "${(property.beds != null && property.beds.toString().isNotEmpty) ? property.beds : 0} beds",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.darkGrey,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Group 2: Baths
+              Row(
+                children: [
+                  SvgPicture.asset("assets/images/drop.svg"),
+                  const SizedBox(width: 5),
+                  Text(
+                    "${(property.baths != null && property.baths.toString().isNotEmpty) ? property.baths : 0} baths",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.darkGrey,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Group 3: Square Feet
+              Row(
+                children: [
+                  SvgPicture.asset("assets/images/square_feet.svg"),
+                  const SizedBox(width: 5),
+                  Text(
+                    "${property.squareFt} sqft",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.darkGrey,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 10),
-          Row(
-            children: property.images.take(3).map((imageUrl) {
-              return GestureDetector(
-                onTap: () {
-                  _showFullImage(context, imageUrl);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(imageUrl,
-                        height: 64, width: 64, fit: BoxFit.cover),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
-/// The `PropertyStatusSection` class displays the status of a property with an icon and text based on
-/// its current status.
-class PropertyStatusSection extends StatelessWidget {
-  final Property property;
-
-  const PropertyStatusSection({super.key, required this.property});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
+          // Group 4: Submitted Date
           Row(
             children: [
-              SvgPicture.asset(
-                "assets/images/pending.svg",
-                colorFilter: ColorFilter.mode(
-                    getStatusColor(property.status), BlendMode.srcIn),
-              ),
+              SvgPicture.asset("assets/images/clock.svg"),
               const SizedBox(width: 5),
               Text(
-                property.status == AppStrings.underReview
-                    ? AppStrings.underReviewText
-                    : property.status == AppStrings.active
-                        ? AppStrings.activeProperty
-                        : AppStrings.inActiveProperty,
+                "Submitted ${property.createdAt != null ? DateFormat('MMM dd, yyyy').format(property.createdAt!) : 'N/A'}",
                 style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.darkGrey),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.darkGrey,
+                ),
               ),
             ],
           ),
-          SvgPicture.asset("assets/images/next_arrow.svg"),
         ],
       ),
     );
@@ -477,7 +499,7 @@ Color getStatusColor(String status) {
     case "active":
       return const Color(0xFF10B981);
     case "under review":
-      return Colors.orange;
+      return const Color(0xFF3B82F6); // Hex color format for Flutter
     case "sold":
       return Colors.red;
     default:
