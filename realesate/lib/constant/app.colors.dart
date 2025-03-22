@@ -11,4 +11,6 @@ class AppColors {
   static Color blue =  Colors.blue;
   static Color grey = const Color(0xFF4B5563);
   static Color labelColor = const Color(0xFF9CA3AF);
+    static Color appshade300Grey = Colors.grey.shade300;
+
 }

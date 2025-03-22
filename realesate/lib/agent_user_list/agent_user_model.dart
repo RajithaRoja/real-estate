@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-class Property {
+class Propertys {
   final String title;
   final String location;
   final double latitude;  // Added latitude
@@ -13,7 +13,7 @@ class Property {
   final bool videoTourAvailable;
   final String? adminReviewStatus;
 
-  Property({
+  Propertys({
     required this.title,
     required this.location,
     required this.latitude,   // Required field
@@ -24,6 +24,6 @@ class Property {
     required this.statusTagColor,
     required this.images,
     required this.videoTourAvailable,
-    this.adminReviewStatus,
+    this.adminReviewStatus, required String id,
   });
 }

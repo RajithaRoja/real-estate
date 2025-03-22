@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:realesate/models/property.dart';
 
 
-class AgentUserPropertyController extends GetxController with GetTickerProviderStateMixin {
+class AdminPropertyController extends GetxController with GetTickerProviderStateMixin {
   var isLoading = false.obs;
   var properties = <Property>[].obs;
   var selectedTabIndex = 0.obs;
@@ -31,35 +31,6 @@ void fetchProperties() async {
 
       List<Property> loadedProperties = querySnapshot.docs.map((doc) {
         var data = doc.data() as Map<String, dynamic>;
-        print(data);
-        print("Extracted createdAt: ${data['createdAt']}");
-
-        //   return Property(
-        //     id: doc.id,
-        //     title: data['title'] ?? '',
-        //     type: data['type'] ?? '',
-        //     price: (data['price'] as num?)?.toDouble() ?? 0.0,
-        //     squareFt: (data['area'] as num?)?.toDouble() ?? 0.0,
-        //     beds: (data['bedrooms'] as num?)?.toInt(),
-        //     baths: (data['bathrooms'] as num?)?.toInt(),
-        //     description: data['description'] ?? '',
-        //     images: data['images'] != null
-        //         ? List<String>.from(
-        //             data['images']['values'].map((e) => e['stringValue']))
-        //         : [],
-        //     youtubeLink: data['youtubeLink'] ?? '',
-        //     address: data['address'] ?? '',
-        //     city: data['city'] ?? '',
-        //     state: data['state'] ?? '',
-        //     zipCode: data['zipCode'] ?? '',
-        //     amenities: data['amenities'] != null
-        //         ? List<String>.from(data['amenities'])
-        //         : [],
-        //     latitude: (data['location'] as GeoPoint?)?.latitude,
-        //     longitude: (data['location'] as GeoPoint?)?.longitude,
-        //     status: data['status'] ?? '',
-        //   );
-        // }).toList();
         return Property(
           id: doc.id,
           title: data['title'] ?? '',
@@ -69,11 +40,8 @@ void fetchProperties() async {
           beds: (data['bedrooms'] as num?)?.toInt(),
           baths: (data['bathrooms'] as num?)?.toInt(),
           description: data['description'] ?? '',
-
-          // ✅ FIX: Directly cast List<String>
           images:
               data['images'] != null ? List<String>.from(data['images']) : [],
-
           youtubeLink: data['youtubeLink'] ?? '',
           address: data['address'] ?? '',
           city: data['city'] ?? '',
@@ -82,22 +50,19 @@ void fetchProperties() async {
           amenities: data['amenities'] != null
               ? List<String>.from(data['amenities'])
               : [],
-          // ✅ FIX: Correct GeoPoint handling
           latitude: (data['location'] as GeoPoint?)?.latitude,
           longitude: (data['location'] as GeoPoint?)?.longitude,
-
           status: data['status'] ?? '',
           createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
               ? DateTime.fromMillisecondsSinceEpoch(
                   (data['createdAt'] as Timestamp).seconds * 1000,
                 )
-              : null, // Keep it nullable
-          // Keep it as DateTime? instead of String
+              : null,
         );
       }).toList();
       properties.value = loadedProperties;
     } catch (e) {
-      print("e$e");
+      debugPrint("e$e");
     } finally {
       isLoading(false);
     }
